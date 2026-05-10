@@ -1,4 +1,6 @@
 import time
+import os
+import json
 import gspread
 
 from bs4 import BeautifulSoup
@@ -12,8 +14,15 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    "credentials.json",
+# LOAD GOOGLE CREDS FROM RENDER ENV
+creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+
+print("Loading Google credentials...")
+
+creds_dict = json.loads(creds_json)
+
+creds = ServiceAccountCredentials.from_json_keyfile_dict(
+    creds_dict,
     scope
 )
 
@@ -34,6 +43,8 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 driver = webdriver.Chrome(options=chrome_options)
 
 URL = "https://bharatmc.net/punishments"
+
+added = set()
 
 while True:
 
@@ -56,10 +67,30 @@ while True:
         if len(cols) < 7:
             continue
 
-        data = [col.text.strip() for col in cols[:7]]
+        player = cols[0].text.strip()
+        ptype = cols[1].text.strip()
+        reason = cols[2].text.strip()
+        server = cols[3].text.strip()
+        issued_by = cols[4].text.strip()
+        issued = cols[5].text.strip()
+        status = cols[6].text.strip()
 
-        print(data)
+        unique = f"{player}-{ptype}-{issued}"
 
-        sheet.append_row(data)
+        if unique not in added:
+
+            sheet.append_row([
+                player,
+                ptype,
+                reason,
+                server,
+                issued_by,
+                issued,
+                status
+            ])
+
+            added.add(unique)
+
+            print(f"Added {player}")
 
     time.sleep(300)
