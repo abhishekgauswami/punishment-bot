@@ -1,11 +1,10 @@
 import time
-import gspread
+import csv
 
-from flask import Flask
+from flask import Flask, send_file
 from threading import Thread
 
 from bs4 import BeautifulSoup
-from google.oauth2.service_account import Credentials
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -18,7 +17,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return "Punishment Bot Running"
+    return send_file("punishments.csv", as_attachment=True)
 
 def run_web():
     app.run(host="0.0.0.0", port=10000)
@@ -30,34 +29,25 @@ web_thread.start()
 print("Flask started")
 
 # =========================
-# GOOGLE SHEETS
+# CSV FILE
 # =========================
 
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
+csv_file = "punishments.csv"
 
-print("STEP 1")
-
-print("STEP 2")
-
-creds = Credentials.from_service_account_file(
-    "/etc/secrets/credentials.json",
-    scopes=scope
-)
-
-print("STEP 3")
-
-client = gspread.authorize(creds)
-
-print("STEP 4")
-
-sheet = client.open_by_key(
-    "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
-).sheet1
-
-print("Google Sheet connected")
+try:
+    with open(csv_file, "x", newline="", encoding="utf-8") as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "Player",
+            "Type",
+            "Reason",
+            "Server",
+            "Issued By",
+            "Issued",
+            "Status"
+        ])
+except:
+    pass
 
 # =========================
 # SELENIUM
@@ -122,15 +112,18 @@ while True:
 
             if unique not in added:
 
-                sheet.append_row([
-                    player,
-                    ptype,
-                    reason,
-                    server,
-                    issued_by,
-                    issued,
-                    status
-                ])
+                with open(csv_file, "a", newline="", encoding="utf-8") as f:
+                    writer = csv.writer(f)
+
+                    writer.writerow([
+                        player,
+                        ptype,
+                        reason,
+                        server,
+                        issued_by,
+                        issued,
+                        status
+                    ])
 
                 added.add(unique)
 
