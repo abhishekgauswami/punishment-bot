@@ -61,6 +61,8 @@ client = gspread.authorize(creds)
 
 print("STEP 5")
 
+print("Opening sheet...")
+
 sheet = client.open_by_key(
     "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
 ).sheet1
@@ -135,7 +137,7 @@ while True:
                     ptype,
                     reason,
                     server,
-                   issued_by,
+                    issued_by,
                     issued,
                     status
                 ])
