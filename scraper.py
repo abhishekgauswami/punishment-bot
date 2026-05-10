@@ -13,7 +13,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 # =========================
-# FLASK WEB SERVER
+# FLASK SERVER
 # =========================
 
 app = Flask(__name__)
@@ -25,7 +25,11 @@ def home():
 def run_web():
     app.run(host="0.0.0.0", port=10000)
 
-Thread(target=run_web).start()
+web_thread = Thread(target=run_web)
+web_thread.daemon = True
+web_thread.start()
+
+print("Flask started")
 
 # =========================
 # GOOGLE SHEETS
@@ -37,6 +41,8 @@ scope = [
 ]
 
 creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+
+print("Loading Google credentials...")
 
 creds_dict = json.loads(creds_json)
 
@@ -51,6 +57,8 @@ sheet = client.open_by_key(
     "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
 ).sheet1
 
+print("Google Sheet connected")
+
 # =========================
 # SELENIUM
 # =========================
@@ -63,11 +71,17 @@ chrome_options.add_argument("--headless")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
+print("Starting Chrome...")
+
 driver = webdriver.Chrome(options=chrome_options)
+
+print("Chrome started successfully")
 
 URL = "https://bharatmc.net/punishments"
 
 added = set()
+
+print("Starting scraper loop...")
 
 # =========================
 # SCRAPER LOOP
@@ -75,49 +89,54 @@ added = set()
 
 while True:
 
-    print("Opening website...")
+    try:
 
-    driver.get(URL)
+        print("Opening website...")
 
-    time.sleep(10)
+        driver.get(URL)
 
-    soup = BeautifulSoup(driver.page_source, "html.parser")
+        time.sleep(10)
 
-    rows = soup.find_all("tr")
+        soup = BeautifulSoup(driver.page_source, "html.parser")
 
-    print(f"Found rows: {len(rows)}")
+        rows = soup.find_all("tr")
 
-    for row in rows:
+        print(f"Found rows: {len(rows)}")
 
-        cols = row.find_all("td")
+        for row in rows:
 
-        if len(cols) < 7:
-            continue
+            cols = row.find_all("td")
 
-        player = cols[0].text.strip()
-        ptype = cols[1].text.strip()
-        reason = cols[2].text.strip()
-        server = cols[3].text.strip()
-        issued_by = cols[4].text.strip()
-        issued = cols[5].text.strip()
-        status = cols[6].text.strip()
+            if len(cols) < 7:
+                continue
 
-        unique = f"{player}-{ptype}-{issued}"
+            player = cols[0].text.strip()
+            ptype = cols[1].text.strip()
+            reason = cols[2].text.strip()
+            server = cols[3].text.strip()
+            issued_by = cols[4].text.strip()
+            issued = cols[5].text.strip()
+            status = cols[6].text.strip()
 
-        if unique not in added:
+            unique = f"{player}-{ptype}-{issued}"
 
-            sheet.append_row([
-                player,
-                ptype,
-                reason,
-                server,
-                issued_by,
-                issued,
-                status
-            ])
+            if unique not in added:
 
-            added.add(unique)
+                sheet.append_row([
+                    player,
+                    ptype,
+                    reason,
+                    server,
+                    issued_by,
+                    issued,
+                    status
+                ])
 
-            print(f"Added {player}")
+                added.add(unique)
+
+                print(f"Added {player}")
+
+    except Exception as e:
+        print(f"ERROR: {e}")
 
     time.sleep(300)
