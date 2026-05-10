@@ -3,21 +3,40 @@ import os
 import json
 import gspread
 
+from flask import Flask
+from threading import Thread
+
 from bs4 import BeautifulSoup
 from oauth2client.service_account import ServiceAccountCredentials
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+# =========================
+# FLASK WEB SERVER
+# =========================
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Punishment Bot Running"
+
+def run_web():
+    app.run(host="0.0.0.0", port=10000)
+
+Thread(target=run_web).start()
+
+# =========================
+# GOOGLE SHEETS
+# =========================
+
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 
-# LOAD GOOGLE CREDS FROM RENDER ENV
 creds_json = os.environ.get("GOOGLE_CREDENTIALS")
-
-print("Loading Google credentials...")
 
 creds_dict = json.loads(creds_json)
 
@@ -32,6 +51,10 @@ sheet = client.open_by_key(
     "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
 ).sheet1
 
+# =========================
+# SELENIUM
+# =========================
+
 chrome_options = Options()
 
 chrome_options.binary_location = "/usr/bin/chromium"
@@ -45,6 +68,10 @@ driver = webdriver.Chrome(options=chrome_options)
 URL = "https://bharatmc.net/punishments"
 
 added = set()
+
+# =========================
+# SCRAPER LOOP
+# =========================
 
 while True:
 
