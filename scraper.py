@@ -7,7 +7,7 @@ from flask import Flask
 from threading import Thread
 
 from bs4 import BeautifulSoup
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -36,7 +36,7 @@ print("Flask started")
 # =========================
 
 scope = [
-    "https://spreadsheets.google.com/feeds",
+    "https://www.googleapis.com/auth/spreadsheets",
     "https://www.googleapis.com/auth/drive"
 ]
 
@@ -50,9 +50,9 @@ creds_dict = json.loads(creds_json)
 
 print("STEP 3")
 
-creds = ServiceAccountCredentials.from_json_keyfile_dict(
+creds = Credentials.from_service_account_info(
     creds_dict,
-    scope
+    scopes=scope
 )
 
 print("STEP 4")
@@ -60,8 +60,6 @@ print("STEP 4")
 client = gspread.authorize(creds)
 
 print("STEP 5")
-
-print("Opening sheet...")
 
 sheet = client.open_by_key(
     "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
