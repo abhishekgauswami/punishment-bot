@@ -1,6 +1,4 @@
 import time
-import os
-import json
 import gspread
 
 from flask import Flask
@@ -42,24 +40,18 @@ scope = [
 
 print("STEP 1")
 
-creds_json = os.environ.get("GOOGLE_CREDENTIALS")
-
 print("STEP 2")
 
-creds_dict = json.loads(creds_json)
-
-print("STEP 3")
-
-creds = Credentials.from_service_account_info(
-    creds_dict,
+creds = Credentials.from_service_account_file(
+    "/etc/secrets/credentials.json",
     scopes=scope
 )
 
-print("STEP 4")
+print("STEP 3")
 
 client = gspread.authorize(creds)
 
-print("STEP 5")
+print("STEP 4")
 
 sheet = client.open_by_key(
     "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
