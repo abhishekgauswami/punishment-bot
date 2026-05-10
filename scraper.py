@@ -40,18 +40,26 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
+print("STEP 1")
+
 creds_json = os.environ.get("GOOGLE_CREDENTIALS")
 
-print("Loading Google credentials...")
+print("STEP 2")
 
 creds_dict = json.loads(creds_json)
+
+print("STEP 3")
 
 creds = ServiceAccountCredentials.from_json_keyfile_dict(
     creds_dict,
     scope
 )
 
+print("STEP 4")
+
 client = gspread.authorize(creds)
+
+print("STEP 5")
 
 sheet = client.open_by_key(
     "1u8Z6m_KpBGgvyfwFVnc1WfC_ta3Bu-4vurVb9RertGw"
